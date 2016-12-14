@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<link rel="stylesheet" type="text/css" href="css/style.css">
+	 <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+</head>
+<body>
+
+<div id="container">
+
+	<div id="queue">
+		<div>
+			<button id="nameBtn">nickname</button>
+			<input type="text" name="nick" id="nickname">
+		</div>
+		<div class="thumb"><img src="vid/dogeThumb.jpg"></div>
+		<div class="thumb"><img src="vid/dogeThumb.jpg"></div>
+		<div class="thumb"><img src="vid/dogeThumb.jpg"></div>
+		<div class="thumb"><img src="vid/dogeThumb.jpg"></div>
+	</div>
+
+<div id='mainView'>
+	<div id="ctrl1">
+		<button id="play">play</button>
+		<button id="pause">pause</button>
+		<button id="release">release</button>
+		<button id="loop">loop</button>
+		<span>opacity</span>
+		<input type="range" class = "slider" id="opacity">
+		<span>playback Rate</span>
+
+		<div id="zeroPoint"></div>
+		<input type="range" class = "slider" id="playback">
+
+		<span>seekbar</span>
+		<input type="range" class = "slider" id="seekbar">
+
+		<input type="range" class = "slider" id="volume" orient="vertical">
+	</div>
+
+	<div id="playView">
+		<div class="vidContainer1">
+			<video src="vid/doggo.mp4" type="video/mp4">
+			</video>
+		</div>
+	</div>
+
+	<div id="ctrl2">
+		<button id="slot1">slot1</button>
+		<button id="slot2">slot2</button>
+		<button id="slot3">slot3</button>
+		<button id="slot4">slot4</button>	
+		<input type="text" id="url">
+		<button id="urlBtn"> gimme!</button>
+	</div>
+</div>
+
+<div id="rPanel">
+	<div>
+		<div id="resizable">
+			
+		</div>
+	</div>
+</div>
+
+</div>
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<script type="text/javascript" src='/socket.io/socket.io.js'></script>
+<script type="text/javascript" src='js/script.js'></script>
+<script type="text/javascript">
+	
+var socket = io();
+var user;
+var users;
+var myVids;
+var vidPlayers = [];
+
+vidPlayers.push(video);
+
+function Thumbnail(thumb){
+	this.thumb = thumb;
+	var self = this;
+	this.thumb.addEventListener("click", function(){
+		video.src = self.thumb.currentVid.file;
+		video.load();
+		cropDrag();
+		cropResize();
+		socket.emit("bcSrcOut", video.src);
+	})
+}
+
+socket.on("bcSrcIn", function(source,user){
+	vidPlayers[iBP(user.name)].src = source;
+	vidPlayers[iBP(user.name)].load();
+	adjVidSize(vidPlayers[iBP(user.name)]);
+})
+socket.on("bcPlayIn", function(auto,user){
+	vidPlayers[iBP(user.name)].play();
+	vidPlayers[iBP(user.name)].autoplay = auto;
+})
+socket.on("bcPauseIn", function(auto,user){
+	vidPlayers[iBP(user.name)].pause();
+	vidPlayers[iBP(user.name)].autoplay = auto;
+})
+socket.on("bcReleaseIn", function(start,end,user){
+	vidPlayers[iBP(user.name)].sampleStart = start;
+	vidPlayers[iBP(user.name)].sampleEnd = end;
+	console.log("start: "+start+"end: "+end);
+})
+socket.on("bcOpacityIn",function(opac,user){
+	vidPlayers[iBP(user.name)].style.opacity = opac;
+})
+socket.on("bcPlayRateIn",function(pr,user){
+	vidPlayers[iBP(user.name)].playbackRate = pr;
+})
+socket.on("bcSeekbarIn", function(ct,user){
+	vidPlayers[iBP(user.name)].currentTime = ct;
+})
+socket.on("bcSamplerIn", function(start,end,user){
+	// console.log("start: "+start+"end: "+end);
+	vidPlayers[iBP(user.name)].currentTime = start;
+	vidPlayers[iBP(user.name)].sampleStart = start;
+	vidPlayers[iBP(user.name)].sampleEnd = end;
+})
+socket.on("bcVolumeIn", function(vol,user){
+	vidPlayers[iBP(user.name)].volume = vol;
+})
+socket.on("bcCropDragIn", function(x,y,user){
+	if(user.name!=undefined){
+	vidPlayers[iBP(user.name)].parentElement.style.left = x;
+	vidPlayers[iBP(user.name)].parentElement.style.top = y;
+	console.log("cropdragIn: "+x+" "+y)		
+	}
+})
+socket.on("bcCropResizeIn", function(x,y,user){
+	if (user.name!=undefined) {
+	vidPlayers[iBP(user.name)].parentElement.style.width = x;
+	vidPlayers[iBP(user.name)].parentElement.style.height = y;	
+	}	
+})
+
+var thumb1 = new Thumbnail(thumbs[0]);
+var thumb2 = new Thumbnail(thumbs[1]);
+var thumb3 = new Thumbnail(thumbs[2]);
+var thumb4 = new Thumbnail(thumbs[3]);
+
+// index by Property
+function iBP(value) {
+    for(var i = 0; i < vidPlayers.length; i += 1) {
+        if(vidPlayers[i].name === value) {
+            return i;
+        }
+    }
+    return -1;
+}
+function iBPuser(value) {
+    for(var i = 0; i < users.length; i += 1) {
+        if(users[i].name === value) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+function updateVids(){
+	for (var i = 0; i < thumbs.length; i++) {
+		if (myVids!=undefined) {
+			if(myVids[i]!=undefined){
+			thumbs[i].children[0].src = myVids[i].thumb;
+			thumbs[i].currentVid = myVids[i];	
+			}	
+		}		
+	}
+}
+
+function newVidPlayer(user){
+	var newVidCont = document.createElement("div");
+	newVidCont.setAttribute("class", "vidContainer1")
+	var video = document.createElement("video");
+	newVidCont.appendChild(video);
+	video.name = user.name;
+	playView.appendChild(newVidCont);
+	vidPlayers.push(video);
+	console.log("testingggg");
+	
+	video.addEventListener("timeupdate", function(){
+		if(video.sampleEnd != undefined){
+			if(video.currentTime > video.sampleEnd){
+				video.currentTime = video.sampleStart;
+			};
+		};
+	});
+}
+
+function delVidPlayer(user){
+	if(user.name!=null){
+		var VidCont = vidPlayers[iBP(user.name)].parentElement;
+		playView.removeChild(VidCont);
+		vidPlayers = vidPlayers.filter(function(item){
+					return item.name != user.name
+				});
+	}	
+}
+
+function zIndxUpdt(){
+	for (var i = 0; i < vidCont.length; i++) {
+		vidCont[i].style.zIndex = iBPuser(vidCont[i].children[0].name);
+	}
+}
+
+// !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// function broadcastVid(){
+// 	setInterval(function(){
+// 		socket.emit("vidBroadcastOut", video);
+// 	},1000);
+// }
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
+
+updateVids();
+
+nameBtn.addEventListener("click",function(){
+	var nickname = document.querySelector("#nickname").value;
+	var nameTaken = false;
+	if (user === undefined) {
+		if(nickname.length>0 && nickname.indexOf(" ")==-1){
+			for (var i = 0; i < users.length; i++) {
+				if (users[i].name == nickname) nameTaken =true;
+			}
+			if (!nameTaken) {
+			socket.emit("newUser", nickname);
+			video.name = nickname;
+			}else{
+				console.log("name taken!");
+				document.querySelector("#nickname").value = "oops! name taken"
+			}
+		}else if(nickname.indexOf(" ")!==-1){
+			document.querySelector("#nickname").value = "no spaces please!"
+		}	
+	}else{
+		console.log("you already have a name, "+user.name);
+	}
+	
+})
+
+socket.on("usersLogged",function(people){
+	console.log("people in room: "+people.length);
+	users = people;
+});
+
+// update vidPlayers when u enter the room
+socket.on("hiLurker",function(people){
+	for (var i = 0; i < people.length; i++) {
+		if(people[i].name != null){
+			newVidPlayer(people[i]);
+		}else{
+		}
+	}
+})
+
+socket.on("hiUser",function(me){
+	console.log("Hello "+me.name);
+	user = me;
+	zIndxUpdt();
+
+// !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	// broadcasting urVid
+	// broadcastVid();
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
+});
+
+// !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// socket.on("vidBroadcastIn", function(clip){
+// 	console.log(clip.src);
+	// vidPlayers[iBP(video.name)]=video;
+// })
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
+
+
+
+// updating vidPlayers when other user joins
+socket.on("userJoined", function(user){
+	console.log(user.name+" joined the room");
+	newVidPlayer(user);
+});
+
+// updating vidPlayers when other user exits
+socket.on("userExit", function(user){
+	console.log(user.name+" left the room");
+	delVidPlayer(user);
+	zIndxUpdt();
+})
+
+
+urlBtn.addEventListener('click',function(){
+
+	var url = document.querySelector('#url').value;
+
+	if(user != undefined){
+
+		// *** ask nick whats best for checking if link == YT
+		if(url.indexOf("://www.youtube.") > -1){
+			socket.emit("newUrl", url);
+			console.log("sending");
+		}else{
+			console.log("not a YT video!")
+		}
+
+	}else{
+		document.querySelector('#url').value="first choose a username!";
+		console.log("user undefined!");
+	}
+})
+
+socket.on("newVid", function(vids){
+	myVids = vids;
+	updateVids();
+});
+
+
+// document.querySelector("#resizable").style.maxWidth = resizableW;
+// document.querySelector("#resizable").style.maxHeight = resizableH;
+
+// vars
+
+// var controls[]
+// var queue
+// var thumbs[]
+
+// var playView
+// var vidCont
+// var video
+
+// var nameBtn
+// var urlBtn
+
+// var play
+// var pause
+// var release
+// var loop
+
+// var opacitySldr
+// var playrateSldr
+// var seekbarSldr
+
+// var sampler1
+// var sampler2
+// var sampler3
+// var sampler4
+
+
+
+
+</script>
+
+
+
+</body>
+</html>
+
+
+
+
+
+
+
+

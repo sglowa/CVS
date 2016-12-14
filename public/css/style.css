@@ -1,0 +1,142 @@
+#container{
+	display: flex;
+	flex-direction: row;
+	width: 98%;
+	height: 98%;
+	min-height: 440px;
+	position: absolute;
+}
+
+#mainView{	
+	height: 100%;
+	position: relative;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	flex-direction: column;
+	/*border: solid 1px;*/
+}
+
+#queue{
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: space-between;
+	/*border: solid 1px;*/
+	height: 90%;
+	width: 20%;
+	margin-right:25px; 
+	overflow-x: hidden;
+}
+
+#rPanel{
+	display: flex;
+	justify-content: center;
+	flex-direction: row;
+	flex-wrap: wrap;
+	flex-grow: 1;
+	border: solid 1px;
+	margin-left:25px;
+}
+#rPanel > div{
+	width: 100%;
+	border: solid 1px;
+	margin: 10px; 
+	overflow:hidden; 
+}
+#rPanel > div > div{
+	width: 100%;
+	height: 100%;
+	background-color: rgba(63, 191, 191, 0.2);
+}
+
+#mainView > div:not(#playView ) {
+	
+	display: flex;
+	justify-content: space-around;
+	flex-wrap: wrap; 
+	/*border: solid 1px;*/
+}
+#ctrl1{
+	min-height: 143px;
+}
+#ctrl2{
+	min-height: 45px;
+}
+#queue>div:first-child{
+	display: flex;
+	justify-content: flex-start;
+	width: 80%;
+	flex-wrap: wrap;
+	overflow-x: hidden;
+}
+.thumb{
+	width: 80%;
+	min-width: 120px;
+	/*border: solid 1px;*/
+}
+img{
+	width: 100%;
+}
+#nameBtn{
+	margin: 0 5px 5px 0;
+}
+#nickname{
+	width: 100%;
+}
+
+#playView{
+	width: 88.85vw;
+	height: 50vw;
+	max-width: 640px;
+	max-height: 360px;
+	opacity: 1;
+	margin: 20px 0 20px 0;
+	display: flex;
+	justify-content: center;
+
+}
+.vidContainer1{
+	/*border: solid 1px;*/
+	overflow: hidden;
+	z-index: 1;
+	position: absolute;
+}
+video{
+	/*transform: translateX(-25%);*/
+	position: fixed;
+}
+
+button:not(#nameBtn){
+	width: 20%;
+	margin: 2%;
+}
+
+#url{
+	width: 70%;
+	height: 25%;
+	align-self: center;
+}
+
+.slider:not(#volume){
+	width: 90%;
+	display:flex;
+	align-self: center;
+}
+#volume{
+	position: absolute;
+	writing-mode: bt-lr; /* IE */
+    -webkit-appearance: slider-vertical; /* WebKit */
+    z-index: 4;
+}
+
+#zeroPoint{
+	background-color: black;
+	z-index: 2;
+	width: 1px;
+	position: absolute;
+}
+span{
+	flex-basis: 90%;
+	text-align: left;
+}
